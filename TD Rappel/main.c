@@ -3,34 +3,27 @@
 #include <stdlib.h>
 
 int main(void) {
-    Prom *p = prom_create();
-    if (!p) {
-        fprintf(stderr, "Allocation prom failed\n");
-        return EXIT_FAILURE;
+    Prom *promo = prom_from_file("data.txt");
+    if (!promo) {
+        printf("Erreur lecture fichier texte.\n");
+        return 1;
+    }
+    printf("Lecture OK : %zu étudiants\n", promo->num_students);
+    for (size_t i = 0; i < promo->num_students; i++) {
+        Student *s = &promo->students[i];
+        printf("%s %s : moyenne %.2f\n", s->fname, s->lname, s->average);
     }
 
-    /* Exemple basique: créer un étudiant, une matière, ajouter une note, l'ajouter à la promo */
-    Student *s = student_create(226345678, "Alexander", "Muller", 19);
-    if (!s) return EXIT_FAILURE;
+    prom_save_binary("promo.bin", promo);
+    prom_destroy(promo);
 
-    Course *c = course_create("Mathematiques", 2.25);
-    course_add_grade(c, 15.0);
-    course_add_grade(c, 12.5);
-
-    student_add_course(s, c);
-    student_update_average(s);
-
-    prom_add_student(p, s);
-
-    /* Affichage basique */
-    printf("Promotion has %zu student(s).\n", p->num_students);
-    if (p->num_students > 0) {
-        Student *st = &p->students[0];
-        printf("Student %d: %s %s, age %d, average %.2f\n",
-            st->id, st->fname ? st->fname : "(null)", st->lname ? st->lname : "(null)", st->age,
-            isnan(st->average) ? 0.0 : st->average);
+    Prom *load = prom_load_binary("promo.bin");
+    printf("\nLecture binaire : %zu étudiants\n", load->num_students);
+    for (size_t i = 0; i < load->num_students; i++) {
+        Student *s = &load->students[i];
+        printf("%s %s (ID %d) -> %.2f\n", s->fname, s->lname, s->id, s->average);
     }
 
-    prom_destroy(p);
-    return EXIT_SUCCESS;
+    prom_destroy(load);
+    return 0;
 }
