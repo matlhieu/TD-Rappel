@@ -1,98 +1,63 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#include <stddef.h>
+typedef struct liste {
+    float nombre;
+    struct liste* suivant;
+} liste;
 
-/**
- * @file struct.h
- * @brief Structures pour l'exercice - définitions et prototypes
- */
+typedef struct grades {
+    char* nom;
+    liste* tab;
+    struct grades* suivant;
+    float moyenne;
+} grades;
 
-/* -----------------------
-   Structures
-   ----------------------- */
+typedef struct course {
+    char* nom;
+    float coef;
+    struct course* suivant;
+} course;
 
-/**
- * @brief Table de notes dynamiques
- */
-typedef struct {
-    double *values;   /**< tableau de notes */
-    size_t size;      /**< nombre d'éléments réellement présents */
-    size_t capacity;  /**< capacité allouée (internelle) */
-} Grades;
-
-/**
- * @brief Matière (cours) contenant ses notes
- */
-typedef struct {
-    char *name;    /**< nom (allocated as needed) */
-    double coef;   /**< coefficient de la matière */
-    Grades grades; /**< notes pour la matière */
-    double average;/**< moyenne de la matière (NaN ou 0 s'il n'y a pas de note) */
-} Course;
-
-/**
- * @brief Étudiant
- */
-typedef struct {
-    int id;
-    char *fname;    /**< prénom (malloc'd) */
-    char *lname;    /**< nom (malloc'd) */
+typedef struct student {
+    char* prenom;
+    char* nom;
     int age;
-    Course *courses;/**< tableau dynamique de matières */
-    size_t num_courses;
-    size_t courses_capacity;
-    double average; /**< moyenne générale */
-} Student;
+    int num;
+    grades* matieres;
+    float moyenne;
+    struct student* suivant;
+} student;
 
-/**
- * @brief Promotion (ensemble d'étudiants)
- */
-typedef struct {
-    Student *students;
-    size_t num_students;
-    size_t students_capacity;
-} Prom;
+typedef struct prom {
+    student* tab_etu;
+    int nb_etu;
+    struct prom* suivant;
+} prom;
 
-/* -----------------------
-   Prototypes - Grades
-   ----------------------- */
+/* prototypes constructeurs / destructeurs */
+liste* ConstructeurListe(liste* a, float nb);
+float moyenneMatiere(liste* a);
+void ConstructeurMatiere(grades** a, float nb, char* mat);
+student* ajouterNotes(student* etu, char* mat, int id, float note);
+void ConstructeurCourse(course** matiere, char* a, float coef);
+student* ConstructeurStudent(student* etu, char* prenom, char* nom, int age, int num);
+student* moyenneEtu(student* stu, course* mat);
+prom* ConstructeurProm(prom* a, student* etu);
 
-Grades *grades_create(void);
-void grades_destroy(Grades *g);
-int grades_add(Grades *g, double value); /* retourne 0 si ok, -1 erreur */
+/* destructeurs */
+void destructeurListe(liste* a);
+void destructeurMat(grades* a);
+void destructeurStu(student* a);
+void destructeurProm(prom* a);
+void destructeurCourse(course* a);
 
-/* -----------------------
-   Prototypes - Course
-   ----------------------- */
+/* lecture / écriture fichier */
+student* lecture(course** matiere, const char* filename);
+int binaryWrite(prom* promotion, course* matiere);
+student* lectureBinaire(prom* p, course** matiere);
 
-Course *course_create(const char *name, double coef);
-void course_destroy(Course *c);
-int course_add_grade(Course *c, double value);
-void course_update_average(Course *c);
-
-/* -----------------------
-   Prototypes - Student
-   ----------------------- */
-
-Student *student_create(int id, const char *fname, const char *lname, int age);
-void student_destroy(Student *s);
-int student_add_course(Student *s, Course *c); /* prend ownership du Course* */
-void student_update_average(Student *s);
-
-/* -----------------------
-   Prototypes - Prom (Class)
-   ----------------------- */
-
-Prom *prom_create(void);
-void prom_destroy(Prom *p);
-int prom_add_student(Prom *p, Student *s); /* prend ownership du Student* */
-
-/* -----------------------
-   Utilitaires
-   ----------------------- */
-
-/* retourne 0 si ok, -1 sinon */
-int safe_strdup(char **dest, const char *src);
-
-#endif /* STRUCT_H */
+/* affichages */
+void affichageStudent(student* a);
+void affichageCourse(course* a);
+#endif
