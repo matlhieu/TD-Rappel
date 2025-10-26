@@ -1,36 +1,76 @@
-gcc  -c -o pc/main.o pc/main.c
-In file included from pc/main.c:1:
-pc/read_files.h:5:1: error: unknown type name ‘Prom’
-    5 | Prom *load_promotion_from_file(const char *filename);
-      | ^~~~
-pc/main.c: In function ‘main’:
-pc/main.c:8:5: error: unknown type name ‘Prom’
-    8 |     Prom *promo = load_promotion_from_file("data.txt");
-      |     ^~~~
-pc/main.c:14:5: warning: implicit declaration of function ‘display_promotion’ [-Wimplicit-function-declaration]
-   14 |     display_promotion(promo);
-      |     ^~~~~~~~~~~~~~~~~
-pc/main.c:15:5: error: unknown type name ‘Student’
-   15 |     Student *top10 = get_top_students(promo, 10);
-      |     ^~~~~~~
-pc/main.c:15:22: warning: implicit declaration of function ‘get_top_students’ [-Wimplicit-function-declaration]
-   15 |     Student *top10 = get_top_students(promo, 10);
-      |                      ^~~~~~~~~~~~~~~~
-pc/main.c:15:22: warning: initialization of ‘int *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
-pc/main.c:17:40: error: request for member ‘numStudent’ in something not a structure or union
-   17 |     for (int i = 0; i < 10 && i < promo->numStudent; i++){
-      |                                        ^~
-pc/main.c:18:42: error: request for member ‘fname’ in something not a structure or union
-   18 |         printf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
-      |                                          ^
-pc/main.c:18:58: error: request for member ‘lname’ in something not a structure or union
-   18 |         printf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
-      |                                                          ^
-pc/main.c:18:74: error: request for member ‘average’ in something not a structure or union
-   18 | tf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
-      |                                                              ^
 
-pc/main.c:21:5: warning: implicit declaration of function ‘prom_destroy’ [-Wimplicit-function-declaration]
-   21 |     prom_destroy(promo);
-      |     ^~~~~~~~~~~~
-make: *** [Makefile:17: pc/main.o] Error 1
+ID : 226545530 | Beatrice Schneider | 18 ans
+Arts Plastiques | coef 1.25 : 4.73.912.81.57.915.47.9
+=> Average is : 10.36
+
+Physique | coef 1.75 : 6.68.219.10.36.38.1
+=> Average is : 10.36
+
+Technologie | coef 2.00 : 18.818.113.512.417.710.1
+=> Average is : 10.36
+
+Sociologie | coef 1.50 : 12.514.413.28.312.44.316.8
+=> Average is : 10.36
+
+Latin | coef 1.25 : 10.518.53.92.010.413.19.319.3
+=> Average is : 10.36
+
+Musique | coef 1.50 : 19.92.116.418.818.09.617.76.3
+=> Average is : 10.36
+
+Economie | coef 2.75 : 12.22.29.30.57.91.114.415.2
+=> Average is : 10.36
+
+Philosophie | coef 2.25 : 9.117.32.715.93.02.912.9
+=> Average is : 10.36
+
+Histoire | coef 1.25 : 12.60.39.319.616.310.417.618.915.6
+=> Average is : 10.36
+
+Geographie | coef 1.75 : 16.57.91.92.711.713.81.29.613.8
+=> Average is : 10.36
+
+Français | coef 2.50 : 13.111.815.912.613.913.64.518.4
+=> Average is : 10.36
+
+Allemand | coef 1.75 : 2.411.66.410.71.914.13.819.59.1
+=> Average is : 10.36
+
+Sciences Sociales | coef 2.25 : 19.211.516.11.02.919.85.70.510.919.4
+=> Average is : 10.36
+
+Anglais | coef 2.00 : 12.55.512.310.618.519.113.27.414.3
+=> Average is : 10.36
+
+Chimie | coef 1.50 : 1.312.910.22.613.16.4
+=> Average is : 10.36
+
+Informatique | coef 2.50 : 10.714.215.719.11.017.3
+=> Average is : 10.36
+
+Espagnol | coef 2.00 : 8.13.43.419.75.99.53.1
+=> Average is : 10.36
+
+Mathematiques | coef 2.25 : 0.214.718.00.60.0
+=> Average is : 10.36
+
+Biologie | coef 2.00 : 13.43.719.04.812.88.914.5
+=> Average is : 10.36
+
+EPS | coef 1.00 : 17.911.04.88.46.7
+=> Average is : 10.36
+
+
+=== Top 10 students ===
+Gabriel Bianchi : 11.42
+Beatrice Schneider : 11.10
+Hugo Ricci : 10.94
+Isabella Weber : 10.92
+Emma Bianchi : 10.78
+Zoe Weber : 10.73
+Alice Jensen : 10.69
+Alexander Meyer : 10.65
+Sofia Popescu : 10.62
+Luca Pavlov : 10.56
+double free or corruption (fasttop)
+Aborted (core dumped)
