@@ -10,7 +10,7 @@ static void trim(char *s) {
     memmove(s, p, strlen(p) + 1);
 }
 
-Prom *load_promotion_from_file(const char *filename) {
+Prom *load_promotion_from_file(char *filename) {
     FILE *f = fopen(filename, "r");
     if (!f) return NULL;
 
@@ -36,12 +36,12 @@ Prom *load_promotion_from_file(const char *filename) {
         else if (section == COURSES) {
             char name[50]; double coef;
             sscanf(line, "%49[^;];%lf", name, &coef);
-            // on stocke les cours de référence
+
         }
         else if (section == NOTES) {
             int id; char cname[50]; double grade;
             sscanf(line, "%d;%49[^;];%lf", &id, cname, &grade);
-            // recherche de l’étudiant et ajout de la note
+
         }
     }
     fclose(f);
