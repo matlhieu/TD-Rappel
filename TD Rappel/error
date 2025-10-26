@@ -1,0 +1,36 @@
+gcc  -c -o pc/main.o pc/main.c
+pc/main.c: In function ‘main’:
+pc/main.c:8:5: error: unknown type name ‘Prom’
+    8 |     Prom *promo = load_promotion_from_file("data.txt");
+      |     ^~~~
+pc/main.c:8:19: warning: implicit declaration of function ‘load_promotion_from_file’ [-Wimplicit-function-declaration]
+    8 |     Prom *promo = load_promotion_from_file("data.txt");
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~
+pc/main.c:8:19: warning: initialization of ‘int *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+pc/main.c:14:5: warning: implicit declaration of function ‘display_promotion’ [-Wimplicit-function-declaration]
+   14 |     display_promotion(promo);
+      |     ^~~~~~~~~~~~~~~~~
+pc/main.c:15:5: error: unknown type name ‘Student’
+   15 |     Student *top10 = get_top_students(promo, 10);
+      |     ^~~~~~~
+pc/main.c:15:22: warning: implicit declaration of function ‘get_top_students’ [-Wimplicit-function-declaration]
+   15 |     Student *top10 = get_top_students(promo, 10);
+      |                      ^~~~~~~~~~~~~~~~
+pc/main.c:15:22: warning: initialization of ‘int *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+pc/main.c:17:40: error: request for member ‘numStudent’ in something not a structure or union
+   17 |     for (int i = 0; i < 10 && i < promo->numStudent; i++){
+      |                                        ^~
+pc/main.c:18:42: error: request for member ‘fname’ in something not a structure or union
+   18 |         printf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
+      |                                          ^
+pc/main.c:18:58: error: request for member ‘lname’ in something not a structure or union
+   18 |         printf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
+      |                                                          ^
+pc/main.c:18:74: error: request for member ‘average’ in something not a structure or union
+   18 | tf("%s %s : %.2f\n", top10[i].fname, top10[i].lname, top10[i].average);
+      |                                                              ^
+
+pc/main.c:21:5: warning: implicit declaration of function ‘prom_destroy’ [-Wimplicit-function-declaration]
+   21 |     prom_destroy(promo);
+      |     ^~~~~~~~~~~~
+make: *** [Makefile:17: pc/main.o] Error 1
