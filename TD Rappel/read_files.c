@@ -9,10 +9,29 @@
  * ------------------------------------------------------------------------- */
 
 static void trim(char *s) {
-    char *p = s;
-    while (*p && (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')) p++;
-    memmove(s, p, strlen(p) + 1);
+    // Supprime BOM (UTF-8) + espaces / retours à la ligne
+    unsigned char *p = (unsigned char *)s;
+
+    // saute le BOM si présent (0xEF 0xBB 0xBF)
+    if (p[0] == 0xEF && p[1] == 0xBB && p[2] == 0xBF) {
+        p += 3;
+    }
+
+    // saute espaces, tabulations et retours à la ligne
+    while (*p && (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')) {
+        p++;
+    }
+
+    // déplace le reste de la chaîne au début
+    memmove(s, p, strlen((char *)p) + 1);
+
+    // retire les espaces de fin
+    size_t len = strlen(s);
+    while (len > 0 && (s[len - 1] == ' ' || s[len - 1] == '\n' || s[len - 1] == '\r' || s[len - 1] == '\t')) {
+        s[--len] = '\0';
+    }
 }
+
 
 static Student *find_student_by_id(Prom *p, int id) {
     for (int i = 0; i < p->numStudent; i++)
