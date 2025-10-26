@@ -50,10 +50,11 @@ Student *student_create(int id,char *fname,char *lname, int age) {
     }
 
     strcopy(s->fname, fname);
-    strcopy(s->lname, lname)
+    strcopy(s->lname, lname);
 
     s->courses = NULL;
     s->num_course = 0;
+    s->capacity = 0;
     s->average = 0.0;
 
     return s;
