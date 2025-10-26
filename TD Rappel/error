@@ -1,24 +1,18 @@
-#include "struct.h"
-#include <stdio.h>
-#include <stdlib.h>
+Student *get_top_in_subject(Prom *p, const char *subject) {
+    Student *filtered = malloc(p->numStudent * sizeof(Student));
+    int count = 0;
 
-void display_promotion(Prom *p){
-    float passmark = 0;
-    float passmark_grade;
-    for (int i=0; i < p->numStudent; i++){
+    for (int i = 0; i < p->numStudent; i++) {
         Student *s = &p->students[i];
-        printf("ID : %d | %s %s | %d ans\n", s->id, s-> fname, s->lname, s->age);
-        for (size_t j = 0; j < s->num_course; j++){
-            Course *c = &s->courses[j];
-            printf("%s | coef %.2f :", c->name, c->coef);
-            for (size_t k = 0; k < c->grades.size; k++){
-                printf(" %.1f /", c->grades.values[k]);
-                passmark = passmark + c->grades.values[k];
+        for (size_t j = 0; j < s->num_course; j++) {
+            if (strcmp(s->courses[j].name, subject) == 0) {
+                filtered[count++] = *s;
+                break;
             }
-            passmark_grade = passmark / 7;
-            printf("|Average : %1.f", passmark_grade);
-            printf("\n");
         }
-        printf("\n=> Average is : %.2f\n\n", s->average);
     }
+
+    qsort(filtered, count, sizeof(Student), compare_students);
+    if (count > 3) count = 3;
+    return filtered; // renvoie un tableau trié
 }
