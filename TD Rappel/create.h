@@ -6,7 +6,7 @@
 #include <math.h>
 
 Grades* grades_create();
-Course *course_create(char *name, double *coef);
+Course *course_create(char *name, double coef);
 Student *student_create(int id, char *fname, char *lname, int age);
 Prom *prom_create();
 #endif
