@@ -1,52 +1,51 @@
 #ifdef STRUCT_H
 #define STRUCT_H
+#include <stdlib.h>
 
-//struct
+// Structures
 
-typedef struct{
+typedef struct {
     double *values;
     size_t size;
     size_t capacity;
-}Grades;
+} Grades;
 
-typedef struct{
+typedef struct {
     char *name;
     double coef;
     Grades grades;
     float passmark; 
-}Course;
+} Course;
 
-typedef struct{
+typedef struct {
     int id;
     char *fname;
     char *lname;
     int age;
-    Course* courses;
+    Course *courses;
     size_t num_course;
     size_t courses_capacity;
     float average;
-}Student;
+} Student;
 
-typedef struct{
+typedef struct {
     Student *students;
     int numStudent;
-}Prom;
+} Prom;
 
-//functions
-
+// Fonctions
 
 void grades_destroy(Grades *g);
-int grades_add(Grades *g, double value); 
+int grades_add(Grades *g, double value);
 
 void course_destroy(Course *c);
 int course_add_grade(Course *c, double value);
 
 void student_destroy(Student *s);
-int student_add_course(Student *s, Course *c); 
+int student_add_course(Student *s, Course *c);
 void student_update_average(Student *s);
 
 void prom_destroy(Prom *p);
-int prom_add_student(Prom *p, Student *s); 
-
+int prom_add_student(Prom *p, Student *s);
 
 #endif
