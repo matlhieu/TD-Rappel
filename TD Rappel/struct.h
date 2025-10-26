@@ -48,4 +48,7 @@ void student_update_average(Student *s);
 void prom_destroy(Prom *p);
 int prom_add_student(Prom *p, Student *s);
 
+
+Prom *load_promotion_from_file(char *filename);
+
 #endif
