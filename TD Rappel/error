@@ -1,12 +1,12 @@
 gcc  -c -o pc/main.o pc/main.c
+In file included from pc/main.c:1:
+pc/read_files.h:5:1: error: unknown type name ‘Prom’
+    5 | Prom *load_promotion_from_file(const char *filename);
+      | ^~~~
 pc/main.c: In function ‘main’:
 pc/main.c:8:5: error: unknown type name ‘Prom’
     8 |     Prom *promo = load_promotion_from_file("data.txt");
       |     ^~~~
-pc/main.c:8:19: warning: implicit declaration of function ‘load_promotion_from_file’ [-Wimplicit-function-declaration]
-    8 |     Prom *promo = load_promotion_from_file("data.txt");
-      |                   ^~~~~~~~~~~~~~~~~~~~~~~~
-pc/main.c:8:19: warning: initialization of ‘int *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
 pc/main.c:14:5: warning: implicit declaration of function ‘display_promotion’ [-Wimplicit-function-declaration]
    14 |     display_promotion(promo);
       |     ^~~~~~~~~~~~~~~~~
