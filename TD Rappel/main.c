@@ -1,4 +1,4 @@
-#include "fileio.h"
+#include "struct.h"
 #include "display.h"
 #include "sort.h"
 #include <stdio.h>
