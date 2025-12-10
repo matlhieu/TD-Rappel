@@ -11,4 +11,4 @@
 - Dans le Terminal Linux : rentrer dans le répertoire du makefile <br>
 - Entrer "make" <br>
 - Exécuter "./exec" <br>
-- Nettoyag : "make clean" <br>
+- Nettoyage : "make clean" <br>
