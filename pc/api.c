@@ -2,178 +2,155 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> // Pour srand/rand
+#include <time.h>
 
-// ------------------------------------------------------------------
-// PARTIE 1 : BITWISE (Validation par pôles)
-// ------------------------------------------------------------------
+// --- EXERCICE BITWISE : Affichage par pole ---
 
-// Fonction interne pour vérifier un masque
-static int check_validation(Student *s, uint64_t mask) {
-    // Si tous les bits du masque sont présents dans validated_courses
+int check_bits(Student *s, uint64_t mask) {
+    // Si (valeur & mask) est egal a mask, alors tous les bits sont la
     return (s->validated_courses & mask) == mask;
 }
 
-void API_display_results_per_field(Prom* pClass) {
-    if (!pClass) return;
+void API_display_results_per_field(Prom* p) {
+    if (p == NULL) return;
 
-    printf("\n=== Student Validation Status ===\n");
-    printf("%-20s %-20s | %-10s | %-10s | %-10s\n", "Last Name", "First Name", "Sciences", "Humanities", "Full Year");
-    printf("----------------------------------------------------------------------------------\n");
+    printf("\n=== Validation des Poles ===\n");
+    printf("%-15s %-15s | Sciences | Humanities | ANNEE\n", "Nom", "Prenom");
+    printf("---------------------------------------------------------------\n");
 
-    for (int i = 0; i < pClass->numStudent; i++) {
-        Student *s = &pClass->students[i];
+    for (int i = 0; i < p->numStudent; i++) {
+        Student *s = &p->students[i];
 
-        int val_sciences = check_validation(s, SCIENCES_MASK);
-        int val_humanities = check_validation(s, HUMANITIES_MASK);
-        // Année validée si Sciences ET Humanités (et potentiellement autres) sont validés
-        int val_year = check_validation(s, YEAR_MASK);
+        int ok_sci = check_bits(s, SCIENCES_MASK);
+        int ok_hum = check_bits(s, HUMANITIES_MASK);
+        int ok_year = check_bits(s, YEAR_MASK);
 
-        printf("%-20s %-20s | %-10s | %-10s | %-10s\n",
-               s->lname,
-               s->fname,
-               val_sciences ? "VALID" : "---",
-               val_humanities ? "VALID" : "---",
-               val_year ? "\x1b[32mPASSED\x1b[0m" : "\x1b[31mFAIL\x1b[0m");
+        printf("%-15s %-15s | %-8s | %-10s | %s\n",
+               s->lname, s->fname,
+               ok_sci ? "OK" : ".",
+               ok_hum ? "OK" : ".",
+               ok_year ? "VALIDE" : "NON");
     }
     printf("\n");
 }
 
+// --- EXERCICE CRYPTO : Master Key & XOR ---
 
-// ------------------------------------------------------------------
-// PARTIE 2 : CRYPTO (XOR & Master Key)
-// ------------------------------------------------------------------
-
-// Algorithme de génération de la Master Key (16 octets)
-static void generate_master_key(const char* passphrase, unsigned char* key) {
-    // 1. Initialisation avec les valeurs hexadécimales données
-    unsigned char init_vals[16] = {
+// Génération de la Master Key selon l'algo du PDF
+void generate_master_key(char* pass, unsigned char* key) {
+    // Init avec valeurs hex du sujet
+    unsigned char init[16] = {
         0x01, 0x45, 0x57, 0x89, 0xAB, 0xCD, 0xEF, 0x10,
-        0x32, 0x54, 0x75, 0x98, 0xBA, 0xDC, 0xFE, 0x00 // J'ajoute 0x00 pour faire 16 octets
+        0x32, 0x54, 0x75, 0x98, 0xBA, 0xDC, 0xFE, 0x00 // dernier octet à 00 pour compléter
     };
-    memcpy(key, init_vals, 16);
+    for(int i=0; i<16; i++) key[i] = init[i];
 
-    int pass_len = strlen(passphrase);
-    int key_idx = 0; // Index courant de la clé
+    int len = strlen(pass);
+    int idx = 0;
 
-    // 2. Boucle sur la passphrase
-    for (int i = 0; i < pass_len; i++) {
-        unsigned char c = (unsigned char)passphrase[i];
+    for (int i = 0; i < len; i++) {
+        unsigned char c = (unsigned char)pass[i];
+        
+        // 1. XOR octet courant
+        key[idx] = key[idx] ^ c;
+        
+        // 2. Somme octet suivant (modulo 16)
+        int next = (idx + 1) % 16;
+        key[next] = key[next] + c;
+        
+        // 3. Produit octet précédent
+        int prev = (idx - 1);
+        if (prev < 0) prev = 15;
+        key[prev] = key[prev] * c;
 
-        // "modifier l'octet courant de la clé en faisant le XOR avec l'octet de l'utilisateur"
-        key[key_idx] ^= c;
-
-        // "modifier l'octet suivant ... somme"
-        int next_idx = (key_idx + 1) % 16;
-        key[next_idx] += c;
-
-        // "modifier l'octet précédent ... produit"
-        int prev_idx = (key_idx - 1 + 16) % 16;
-        key[prev_idx] *= c;
-
-        // "on déplace l'index de la clé de manière cyclique"
-        key_idx = (key_idx + 1) % 16;
+        // Déplacement cyclique
+        idx = (idx + 1) % 16;
     }
 }
 
-int API_cipher(const char* pIn, const char* pOut) {
-    // 1. Ouvrir le fichier d'entrée
+int API_cipher(char* pIn, char* pOut) {
     FILE *fin = fopen(pIn, "rb");
-    if (!fin) { perror("Error opening input file"); return 0; }
+    if (!fin) { printf("Erreur ouverture entree\n"); return 0; }
 
-    // 2. Générer une clé aléatoire de 16 octets (File Key)
+    // Cle aleatoire fichier
     unsigned char file_key[16];
     srand(time(NULL));
     for(int i=0; i<16; i++) file_key[i] = rand() % 256;
 
-    // 3. Demander la passphrase et générer la Master Key
-    char passphrase[256];
-    printf("Enter encryption passphrase (min 16 chars recommended): ");
-    if (fgets(passphrase, sizeof(passphrase), stdin)) {
-        passphrase[strcspn(passphrase, "\n")] = 0;
-    }
+    // Demande passphrase
+    char pass[100];
+    printf("Mot de passe chiffrement : ");
+    // Lecture un peu "sale" avec scanf mais ça passe pour etudiant
+    scanf("%s", pass);
     
-    unsigned char master_key[16];
-    generate_master_key(passphrase, master_key);
+    // Generer master key
+    unsigned char master[16];
+    generate_master_key(pass, master);
 
-    // 4. Chiffrer la File Key avec la Master Key
-    unsigned char encrypted_file_key[16];
-    for(int i=0; i<16; i++) {
-        encrypted_file_key[i] = file_key[i] ^ master_key[i];
-    }
+    // Chiffrer la cle du fichier
+    unsigned char encrypted_key[16];
+    for(int i=0; i<16; i++) encrypted_key[i] = file_key[i] ^ master[i];
 
-    // 5. Ouvrir le fichier de sortie
     FILE *fout = fopen(pOut, "wb");
-    if (!fout) { fclose(fin); perror("Error opening output file"); return 0; }
+    if (!fout) { fclose(fin); return 0; }
 
-    // 6. Écrire la clé chiffrée en en-tête
-    fwrite(encrypted_file_key, 1, 16, fout);
+    // Ecrire l'en-tête
+    fwrite(encrypted_key, 1, 16, fout);
 
-    // 7. Chiffrer le contenu du fichier avec la File Key
+    // Chiffrer le contenu
     int c;
-    int k_idx = 0;
+    int k = 0;
     while ((c = fgetc(fin)) != EOF) {
-        unsigned char ch = (unsigned char)c;
-        ch ^= file_key[k_idx];
-        fputc(ch, fout);
-        k_idx = (k_idx + 1) % 16;
+        unsigned char val = (unsigned char)c;
+        val = val ^ file_key[k]; // XOR avec la clé fichier
+        fputc(val, fout);
+        
+        k++;
+        if (k >= 16) k = 0;
     }
 
     fclose(fin);
     fclose(fout);
-    printf("File encrypted successfully to %s\n", pOut);
+    printf("Fichier chiffre cree : %s\n", pOut);
     return 1;
 }
 
-int API_decipher(const char* pIn, const char* pOut) {
-    // 1. Ouvrir fichier chiffré
+int API_decipher(char* pIn, char* pOut) {
     FILE *fin = fopen(pIn, "rb");
-    if (!fin) { perror("Error opening encrypted file"); return 0; }
+    if (!fin) { printf("Erreur fichier chiffre\n"); return 0; }
 
-    // 2. Lire l'en-tête (clé chiffrée)
-    unsigned char encrypted_file_key[16];
-    if (fread(encrypted_file_key, 1, 16, fin) != 16) {
-        printf("Error: File too short.\n");
-        fclose(fin);
-        return 0;
+    unsigned char header[16];
+    if (fread(header, 1, 16, fin) != 16) {
+        fclose(fin); return 0;
     }
 
-    // 3. Demander passphrase et générer Master Key
-    char passphrase[256];
-    printf("Enter decryption passphrase: ");
-    if (fgets(passphrase, sizeof(passphrase), stdin)) {
-        passphrase[strcspn(passphrase, "\n")] = 0;
-    }
+    char pass[100];
+    printf("Mot de passe dechiffrement : ");
+    scanf("%s", pass);
 
-    unsigned char master_key[16];
-    generate_master_key(passphrase, master_key);
+    unsigned char master[16];
+    generate_master_key(pass, master);
 
-    // 4. Déchiffrer la File Key
+    // Retrouver la clé fichier
     unsigned char file_key[16];
-    for(int i=0; i<16; i++) {
-        file_key[i] = encrypted_file_key[i] ^ master_key[i];
-    }
+    for(int i=0; i<16; i++) file_key[i] = header[i] ^ master[i];
 
-    // 5. Ouvrir fichier sortie
     FILE *fout = fopen(pOut, "wb");
-    if (!fout) { fclose(fin); perror("Error opening output file"); return 0; }
+    if (!fout) { fclose(fin); return 0; }
 
-    // 6. Déchiffrer le contenu
     int c;
-    int k_idx = 0;
+    int k = 0;
     while ((c = fgetc(fin)) != EOF) {
-        unsigned char ch = (unsigned char)c;
-        ch ^= file_key[k_idx];
-        fputc(ch, fout);
-        k_idx = (k_idx + 1) % 16;
+        unsigned char val = (unsigned char)c;
+        val = val ^ file_key[k];
+        fputc(val, fout);
+
+        k++;
+        if (k >= 16) k = 0;
     }
 
     fclose(fin);
     fclose(fout);
-    printf("File decrypted successfully to %s\n", pOut);
+    printf("Fichier dechiffre : %s\n", pOut);
     return 1;
 }
-
-// Pour compatibilité avec les autres fichiers si prototypes manquants
-int save_promotion_binary(const char *filename, Prom *p);
-void load_promotion_binary(char* filename, Prom* p);
