@@ -4,186 +4,138 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* --- Fonctions utilitaires --- */
-
-// Fonction simple pour nettoyer les retours à la ligne
-static void trim(char *s) {
-    size_t len = strlen(s);
-    if (len > 0 && s[len - 1] == '\n') {
-        s[len - 1] = '\0';
-    }
-    if (len > 0 && s[len - 1] == '\r') {
-        s[len - 1] = '\0';
-    }
+void trim(char *str) {
+    int l = strlen(str);
+    while(l > 0 && (str[l-1] == '\n' || str[l-1] == '\r')) str[--l] = '\0';
 }
 
-static Student *find_student_by_id(Prom *p, int id) {
-    for (int i = 0; i < p->numStudent; i++) {
-        if (p->students[i].id == id) {
-            return &p->students[i];
-        }
-    }
+Student *find_student(Prom *p, int id) {
+    for (int i = 0; i < p->numStudent; i++)
+        if (p->students[i].id == id) return &p->students[i];
     return NULL;
 }
 
-static Course *find_course_in_student(Student *s, const char *name) {
-    for (size_t i = 0; i < s->num_course; i++) {
-        if (strcmp(s->courses[i].name, name) == 0) {
-            return &s->courses[i];
-        }
-    }
+Course *find_course(Student *s, char *name) {
+    for (int i = 0; i < s->num_course; i++)
+        if (strcmp(s->courses[i].name, name) == 0) return &s->courses[i];
     return NULL;
 }
 
-/* --- Calculs --- */
+// Mapping nom -> enum
+int get_index_mat(char* name) {
+    if (strcmp(name, "Mathematiques") == 0) return MATHS;
+    if (strcmp(name, "Physique") == 0) return PHYSIQUE;
+    if (strcmp(name, "Biologie") == 0) return BIOLOGIE;
+    if (strcmp(name, "Informatique") == 0) return INFORMATIQUE;
+    if (strcmp(name, "Economie") == 0) return ECONOMIE;
+    if (strcmp(name, "Francais") == 0 || strcmp(name, "Français") == 0) return FRANCAIS;
+    if (strcmp(name, "Histoire") == 0) return HISTOIRE;
+    if (strcmp(name, "Geographie") == 0) return GEOGRAPHIE;
+    if (strcmp(name, "Philosophie") == 0) return PHILOSOPHIE;
+    if (strcmp(name, "Anglais") == 0) return ANGLAIS;
+    if (strcmp(name, "Espagnol") == 0) return ESPAGNOL;
+    if (strcmp(name, "Latin") == 0) return LATIN;
+    if (strcmp(name, "Musique") == 0) return MUSIQUE;
+    if (strcmp(name, "Arts Plastiques") == 0) return ARTS_PLASTIQUES;
+    if (strcmp(name, "Sociologie") == 0) return SOCIOLOGIE;
+    if (strcmp(name, "Sciences Sociales") == 0) return SCIENCES_SOCIALES;
+    if (strcmp(name, "EPS") == 0) return EPS;
+    return -1;
+}
 
 void student_update_average(Student *s) {
-    if (s == NULL || s->num_course == 0) return;
+    if (!s) return;
+    double total = 0, coefs = 0;
+    
+    // Reset bits
+    s->validated_courses = 0;
 
-    double total = 0.0;
-    double coef_sum = 0.0;
-
-    for (size_t i = 0; i < s->num_course; i++) {
+    for (int i = 0; i < s->num_course; i++) {
         Course *c = &s->courses[i];
-        double sum = 0.0;
+        double sum = 0;
+        for (int j = 0; j < c->grades.size; j++) sum += c->grades.values[j];
         
-        // Calcul moyenne matière
-        for (size_t j = 0; j < c->grades.size; j++) {
-            sum += c->grades.values[j];
-        }
+        c->passmark = (c->grades.size > 0) ? sum / c->grades.size : 0;
 
-        if (c->grades.size > 0) {
-            c->passmark = sum / c->grades.size;
-        } else {
-            c->passmark = 0;
+        // Logique Bitwise : si moyenne >= 10, on allume le bit
+        if (c->passmark >= 10.0) {
+            int idx = get_index_mat(c->name);
+            if (idx != -1) {
+                s->validated_courses |= (1ULL << idx);
+            }
         }
 
         total += c->passmark * c->coef;
-        coef_sum += c->coef;
+        coefs += c->coef;
     }
-
-    if (coef_sum > 0) {
-        s->average = total / coef_sum;
-    } else {
-        s->average = 0;
-    }
+    s->average = (coefs > 0) ? total / coefs : 0;
 }
 
-/* --- Chargement du fichier --- */
-
-Prom *load_promotion_from_file(const char *filename) {
+Prom *load_promotion_from_file(char *filename) {
     FILE *f = fopen(filename, "r");
-    if (f == NULL) {
-        printf("Impossible d'ouvrir le fichier %s\n", filename);
-        return NULL;
-    }
+    if (!f) { printf("Erreur fichier\n"); return NULL; }
 
-    Prom *promo = prom_create();
-    char line[256];
-    
-    // Etats pour la lecture
-    int section = 0; // 0: Rien, 1: Etudiants, 2: Matieres, 3: Notes
-    
-    // Tableau temporaire pour stocker les modèles de matières
-    Course *courses_ref = NULL;
-    int nb_courses = 0;
+    Prom *p = prom_create();
+    char line[200];
+    int mode = 0;
+    Course *ref_courses = NULL;
+    int nb_ref = 0;
 
-    int skip_header = 0;
-
-    while (fgets(line, sizeof(line), f)) {
+    while (fgets(line, 200, f)) {
         trim(line);
         if (strlen(line) == 0) continue;
 
-        // Detection des sections
-        if (strcmp(line, "ETUDIANTS") == 0) { 
-            section = 1; 
-            skip_header = 1; 
-            continue; 
-        }
-        if (strcmp(line, "MATIERES") == 0) { 
-            section = 2; 
-            skip_header = 1; 
-            continue; 
-        }
-        if (strcmp(line, "NOTES") == 0) { 
-            section = 3; 
-            skip_header = 1; 
-            continue; 
-        }
+        if (strcmp(line, "ETUDIANTS") == 0) { mode=1; continue; }
+        if (strcmp(line, "MATIERES") == 0) { mode=2; continue; }
+        if (strcmp(line, "NOTES") == 0) { mode=3; continue; }
 
-        if (skip_header) {
-            skip_header = 0;
-            continue;
-        }
-
-        // Lecture ETUDIANTS
-        if (section == 1) {
-            int id, age;
-            char fname[50], lname[50];
-            // Lecture formatée
-            if (sscanf(line, "%d;%49[^;];%49[^;];%d", &id, fname, lname, &age) == 4) {
-                Student *s = student_create(id, fname, lname, age);
-                
-                // Ajout simple au tableau (realloc direct)
-                promo->students = realloc(promo->students, (promo->numStudent + 1) * sizeof(Student));
-                promo->students[promo->numStudent] = *s;
-                promo->numStudent++;
-                
-                free(s); // On libère la structure temporaire
+        if (mode == 1) {
+            int id, age; char n[50], pnom[50];
+            if (sscanf(line, "%d;%49[^;];%49[^;];%d", &id, n, pnom, &age) == 4) {
+                Student *s = student_create(id, n, pnom, age);
+                p->students = realloc(p->students, (p->numStudent + 1) * sizeof(Student));
+                p->students[p->numStudent] = *s;
+                p->numStudent++;
+                free(s);
             }
         }
-        // Lecture MATIERES
-        else if (section == 2) {
-            char name[50]; 
-            double coef;
-            if (sscanf(line, "%49[^;];%lf", name, &coef) == 2) {
-                Course *c = course_create(name, coef);
-                
-                courses_ref = realloc(courses_ref, (nb_courses + 1) * sizeof(Course));
-                courses_ref[nb_courses] = *c;
-                nb_courses++;
-                
+        else if (mode == 2) {
+            char n[50]; double k;
+            if (sscanf(line, "%49[^;];%lf", n, &k) == 2) {
+                Course *c = course_create(n, k);
+                ref_courses = realloc(ref_courses, (nb_ref + 1) * sizeof(Course));
+                ref_courses[nb_ref] = *c;
+                nb_ref++;
                 free(c);
             }
         }
-        // Lecture NOTES
-        else if (section == 3) {
-            int id; 
-            char cname[50]; 
-            double grade;
-            
-            if (sscanf(line, "%d;%49[^;];%lf", &id, cname, &grade) == 3) {
-                Student *s = find_student_by_id(promo, id);
-                if (s != NULL) {
-                    // On cherche si l'étudiant a déjà la matière
-                    Course *c = find_course_in_student(s, cname);
-                    
-                    // Sinon on l'ajoute
-                    if (c == NULL) {
-                        for (int i = 0; i < nb_courses; i++) {
-                            if (strcmp(courses_ref[i].name, cname) == 0) {
-                                s->courses = realloc(s->courses, (s->num_course + 1) * sizeof(Course));
-                                s->courses[s->num_course] = courses_ref[i]; // Copie de la structure
+        else if (mode == 3) {
+            int id; char mat[50]; double note;
+            if (sscanf(line, "%d;%49[^;];%lf", &id, mat, &note) == 3) {
+                Student *s = find_student(p, id);
+                if (s) {
+                    Course *c = find_course(s, mat);
+                    if (!c) {
+                        for(int i=0; i<nb_ref; i++) {
+                            if (strcmp(ref_courses[i].name, mat) == 0) {
+                                s->courses = realloc(s->courses, (s->num_course+1)*sizeof(Course));
+                                s->courses[s->num_course] = ref_courses[i];
                                 c = &s->courses[s->num_course];
                                 s->num_course++;
                                 break;
                             }
                         }
                     }
-
-                    // Ajout de la note
-                    if (c != NULL) {
-                        c->grades.values = realloc(c->grades.values, (c->grades.size + 1) * sizeof(double));
-                        c->grades.values[c->grades.size] = grade;
-                        c->grades.size++;
+                    if (c) {
+                        c->grades.values = realloc(c->grades.values, (c->grades.size+1)*sizeof(double));
+                        c->grades.values[c->grades.size++] = note;
                         student_update_average(s);
                     }
                 }
             }
         }
     }
-
-    free(courses_ref); // On libère juste le tableau ref
+    free(ref_courses);
     fclose(f);
-    return promo;
+    return p;
 }
