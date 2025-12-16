@@ -7,8 +7,6 @@
 #include <string.h>
 
 void API_display_results_per_field(Prom* pClass);
-int API_cipher(const char* pIn, const char* pOut);
-int API_decipher(const char* pIn, const char* pOut);
 
 void display_sorted_api(Prom *p, int mode, const char* mode_name) {
     if (API_set_sorting_mode(p, mode)) {
