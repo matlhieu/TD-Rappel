@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> 
 
 static int check_validation(Student *s, uint64_t mask) {
     return (s->validated_courses & mask) == mask;
@@ -36,7 +35,3 @@ void API_display_results_per_field(Prom* pClass) {
     }
     printf("\n");
 }
-
-
-int save_promotion_binary(const char *filename, Prom *p);
-void load_promotion_binary(char* filename, Prom* p);
